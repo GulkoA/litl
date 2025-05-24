@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "litl"
+version = "0.0.5"
+authors = [
+  { name="Alex Gulko", email="alex@gulko.net" },
+]
+description = "Lightweight InTerface for Lossy compression"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+dependencies = [
+    "numpy",
+    "torch",
+    "rich",
+    "torcheval",
+    "pytorch_msssim",
+]
+
+[project.urls]
+Homepage = "https://github.com/GulkoA/litl"
+
+[project.scripts]
+litl = "litl.cli:main"
