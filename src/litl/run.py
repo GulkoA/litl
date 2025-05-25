@@ -42,21 +42,33 @@ def get_compressor(name: str) -> Compressor:
         # if the compressor is not in the entry points, try to load it from a file
         try:
           path, classname = name.rsplit(':', 1)
-
           spec = importlib.util.spec_from_file_location(path, os.path.expanduser(path))
           mod  = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(mod)
+          
+          
           cls = getattr(mod, classname)
 
         except Exception as e:
-          raise ValueError(f"Failed to load compressor {name}. Available compressors in pip: {list(_AVAILABLE_COMPRESSORS.keys())}, available classes in {path}: {dir(mod)}") from e
+          raise ValueError(f"Failed to load compressor {name}. Available compressors in pip: {list(_AVAILABLE_COMPRESSORS.keys())}") from e
         
         if not issubclass(cls, Compressor):
             raise ValueError(f"Compressor {name} is not a subclass of Compressor")
         return cls
         
 
-def compress(compressor_name: str, data_path: str, config: dict, litl_file_path: str=None):
+def compress(compressor_name: str, data_path: str, config: dict, litl_file_path: str=None) -> tuple[Blob, dict, dict]:
+    """
+    Compress data using the specified compressor
+    Args:
+        compressor_name (str): The name of the compressor to use
+        data_path (str): The path to the data file to compress
+        config (dict): Configuration for the compressor
+        litl_file_path (str, optional): If provided, save the compressed data to a .litl file
+        
+    Returns:
+        tuple: A tuple containing the compressed blob, metadata, and metrics
+    """
     # load data
     compressor_class = get_compressor(compressor_name)
 
@@ -85,11 +97,27 @@ def compress(compressor_name: str, data_path: str, config: dict, litl_file_path:
         total_size = DotLitl.save(litl_file_path, compressed_bytes, meta, compressor_name, compressor_class.about().version)
         metrics.update({
             'total_litl_size': total_size,
+
         })
 
     return compressed_blob, meta, metrics
 
-def decompress(compressor_name=None, original_data_path: str=None, compressed_bytes: bytes=None, meta: dict=None, litl_file_path: str=None, decompressed_path: str=None):
+def decompress(compressor_name=None, original_data_path: str=None, compressed_bytes: bytes=None, meta: dict=None, litl_file_path: str=None, decompressed_path: str=None) -> tuple[DataWrapper, dict]:
+    """
+    Decompress data using the specified compressor
+    Args:
+        compressor_name (str): The name of the compressor to use
+        original_data_path (str): The path to the original data file for quality evaluation
+        compressed_bytes (bytes): The compressed data bytes
+        meta (dict): Metadata for the compressed data
+        
+        litl_file_path (str): Provide instead of compressor_name, original_data_bytes, and meta to read everything the compressed data from a .litl file
+        
+        decompressed_path (str, optional): If provided, save the decompressed data to this path
+        
+    Returns:
+        tuple: A tuple containing the decompressed data and metrics
+    """
 
     if litl_file_path is not None:
         # read from litl file
@@ -130,6 +158,19 @@ def decompress(compressor_name=None, original_data_path: str=None, compressed_by
 
 
 def evaluate(compressor_name: str, data_path: str, config, decompressed_path: str=None, litl_file_path: str=None):
+    """
+    Evaluate the compression and decompression process by compressing and decompressing the data.
+    Args:
+        compressor_name (str): The name of the compressor to use
+        data_path (str): The path to the data file to compress
+        config (dict): Configuration for the compressor
+        
+        decompressed_path (str, optional): If provided, save the decompressed data to this path
+        litl_file_path (str, optional): If provided, save the compressed data to a .litl file
+        
+    Returns:
+        tuple: A tuple containing the decompressed data and metrics
+    """
 
     # make deterministic
     torch.manual_seed(0)

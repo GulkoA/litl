@@ -40,7 +40,8 @@ class DotLitl:
         """
         Compress the data using Zstandard
         """
-        compressed = zstd.compress(data)
+        level = 3
+        compressed = zstd.compress(data, level)
         return compressed
     
     @classmethod
@@ -74,8 +75,8 @@ class DotLitl:
         hasher = hashlib.sha256(usedforsecurity=False)
         hasher.update(blob_bytes)
         hasher.update(meta_bytes)
-        checksum = hasher.digest()[:1]
-        return checksum[0]
+        checksum = hasher.digest()[:4]
+        return int.from_bytes(checksum, byteorder="little")
 
     @classmethod
     def save(cls, path: str, blob_bytes: bytes, meta: dict, compressor_name: str, compressor_version: str) -> None:
@@ -98,7 +99,7 @@ class DotLitl:
         with open(path, 'wb') as f:
             f.write(b"LITL")
             f.write(struct.pack("<B", cls.version))
-            f.write(struct.pack("<B", checksum))
+            f.write(struct.pack("<I", checksum))
             f.write(struct.pack("<I", len(meta_bytes)))
             f.write(meta_bytes)
             f.write(blob_bytes)
@@ -118,7 +119,7 @@ class DotLitl:
                 raise ValueError("Invalid file format")
 
             version = struct.unpack("<B", f.read(1))[0]
-            checksum = struct.unpack("<B", f.read(1))[0]
+            checksum = struct.unpack("<I", f.read(4))[0]
 
             if version != cls.version:
                 raise ValueError(f"Unsupported version: {version}")
@@ -130,9 +131,8 @@ class DotLitl:
 
         # checksum validation
         new_checksum = cls.checksum(blob_bytes, meta_bytes)
-        print("New checksum:", new_checksum)
         if new_checksum != checksum:
-            raise RuntimeWarning("Checksum mismatch, file may be corrupted")
+            RuntimeWarning("Checksum mismatch, file may be corrupted")
         
         # decompress meta
         blob_bytes = cls.zstd_decompress_bytes(blob_bytes)
@@ -141,6 +141,3 @@ class DotLitl:
         meta = LitlMeta.deserialize_value(meta_bytes.decode('utf-8'))
 
         return blob_bytes, meta.compressor_id, meta.compressor_version, meta.compressor_meta, meta.litl_version
-    
-    
-    

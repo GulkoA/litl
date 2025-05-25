@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "litl"
-version = "0.0.5"
+version = "0.0.7"
 authors = [
   { name="Alex Gulko", email="alex@gulko.net" },
 ]
@@ -17,12 +17,17 @@ classifiers = [
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
-dependencies = [
+requires = [
     "numpy",
     "torch",
     "rich",
     "torcheval",
     "pytorch_msssim",
+]
+
+[project.optional-dependencies]
+netcdf = [
+    "netcdf4",
 ]
 
 [project.urls]

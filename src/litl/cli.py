@@ -108,4 +108,5 @@ def main():
     except Exception as e:
         console.print_exception(show_locals=True)
         sys.exit(1)
-
+        
+    return 0

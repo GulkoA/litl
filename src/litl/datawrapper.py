@@ -54,7 +54,7 @@ class DataWrapper():
     elif extension == 'nc':
       self.save_netcdf(path)
     else:
-      raise ValueError(f'Unsupported file format to save as: .{extension}')
+      raise ValueError(f'Unsupported file format to save as: ".{extension}"')
     
   def save_netcdf(self, path: str, dimnames: list[str]=None):
     """

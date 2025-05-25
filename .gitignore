@@ -1,4 +1,7 @@
-/dist
+dist/
+__pycache__/
 *_cache
-*/*cache__
-/playground
+*/*cache__ 
+*.litl
+*.pyc
+examples/
