@@ -38,7 +38,7 @@ class Compressor():
   
 
   @classmethod
-  def blob_class(cls) -> Blob:
+  def blob_class(cls) -> type[Blob]:
     """
     Returns the type of Blob object that the Compressor uses to store compressed data
     """

@@ -12,7 +12,6 @@ from .blobs import Blob
 from .evaluator import Evaluator
 from .dot_litl import DotLitl
 
-# import all compressors
 import importlib
 
 def _discover_compressors():
@@ -125,7 +124,7 @@ def decompress(compressor_name=None, original_data_path: str=None, compressed_by
         compressor_class = get_compressor(compressor_name)
 
         if compressor_class.about().version != compressor_version:
-            raise ImportWarning(f"Compressor version mismatch: loaded compressor is v{compressor_class.about().version}, originally compressed with v{compressor_version}")
+            raise ValueError(f"Compressor version mismatch: loaded compressor is v{compressor_class.about().version}, originally compressed with v{compressor_version}")
 
         compressed_blob_class = compressor_class.blob_class()
         compressed_blob = compressed_blob_class.from_bytes(blob_bytes)

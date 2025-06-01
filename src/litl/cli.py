@@ -1,6 +1,9 @@
 import argparse
 import os
 import sys
+import json
+from importlib import metadata as importlib_metadata
+
 import rich
 from rich.console import Console
 from rich.progress import Progress
@@ -11,6 +14,7 @@ from .dot_litl import DotLitl
 def parse_args():
     parser = argparse.ArgumentParser(description="Neat CLI for lossy compression via litl")
     parser.add_argument("-m", "--metrics_path", help="Where to save the metrics json")
+    parser.add_argument("--version", action="version", version=f"litl v{importlib_metadata.version('litl')}", help="Show the version of litl")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -56,7 +60,7 @@ def main():
       if args.command == "compress":
           with open(args.config_path, "r") as f:
               config = f.read()
-          config = eval(config)
+          config = json.loads(config)
               
           with console.status("[bold green]Compressing...[/bold green]"):
             compressed_blob, meta, metrics = compress(args.compressor, args.original_path, config=config, litl_file_path=args.compressed_path)
@@ -76,7 +80,7 @@ def main():
           
           with open(args.config_path, "r") as f:
               config = f.read()
-          config = eval(config)
+          config = json.loads(config)
           
           with console.status("[bold green]Evaluating compression...[/bold green]"):
             decompressed_data, metrics = evaluate(args.compressor, args.original_path, config=config, decompressed_path=args.decompressed_path, litl_file_path=args.compressed_path)
