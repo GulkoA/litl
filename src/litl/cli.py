@@ -54,6 +54,8 @@ def main():
     # fancy rich printing
     console.print(f"[bold green]{ascii_art}[/bold green]")
     console.print(f"[bold]Running litl [green]{args.command}[/green][/bold]")
+    
+    width = console.width
 
     try:
         
@@ -110,7 +112,7 @@ def main():
           console.print(f"Metrics saved to {args.metrics_path}")
       
     except Exception as e:
-        console.print_exception(show_locals=True)
+        console.print_exception(show_locals=True, width=console.width)
         sys.exit(1)
         
     return 0

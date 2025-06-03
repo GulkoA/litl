@@ -37,23 +37,27 @@ def get_compressor(name: str) -> Compressor:
     if name in _AVAILABLE_COMPRESSORS:
         # if the compressor is in the entry points, return it
         return _AVAILABLE_COMPRESSORS[name]
-    else:
+    elif ":" in name:
         # if the compressor is not in the entry points, try to load it from a file
         try:
-          path, classname = name.rsplit(':', 1)
-          spec = importlib.util.spec_from_file_location(path, os.path.expanduser(path))
-          mod  = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(mod)
+            path, classname = name.rsplit(':', 1)
+            spec = importlib.util.spec_from_file_location(path, os.path.expanduser(path))
+            mod  = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except ValueError as e:
+          raise ImportError(f"Failed to load compressor script file at path {path}, possibly it doesn't exist") from e
           
-          
+        try:
           cls = getattr(mod, classname)
-
-        except Exception as e:
-          raise ValueError(f"Failed to load compressor {name}. Available compressors in pip: {list(_AVAILABLE_COMPRESSORS.keys())}") from e
+        except AttributeError:
+            raise ValueError(f"Compressor {name} does not have class {classname}")
         
         if not issubclass(cls, Compressor):
             raise ValueError(f"Compressor {name} is not a subclass of Compressor")
         return cls
+    
+    else:
+        raise ValueError(f"Compressor {name} not found in entry points. Available compressors in pip: {list(_AVAILABLE_COMPRESSORS.keys())} or please provide a path to a compressor file in the format 'path/to/file.py:CompressorClassName'")
         
 
 def compress(compressor_name: str, data_path: str, config: dict, litl_file_path: str=None) -> tuple[Blob, dict, dict]:

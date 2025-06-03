@@ -2,20 +2,7 @@
 
 from ..datawrapper import DataWrapper
 from ..blobs import Blob
-
-import pydantic
-
-class CompressorAbout(pydantic.BaseModel):
-  """
-  Pydantic model that defines the metadata for a compressor.
-  """
-  name: str
-  description: str
-  version: str
-  author: str = None
-  license: str = None
-  url: str = None
-
+from .compressor_about import CompressorAbout
 
 class Compressor():
   """
@@ -45,7 +32,7 @@ class Compressor():
     raise NotImplementedError()
 
   @classmethod
-  def compress(cls, data: DataWrapper, config: pydantic.BaseModel=None) -> tuple[Blob, pydantic.BaseModel]:
+  def compress(cls, data: DataWrapper, config: dict) -> tuple[Blob, dict]:
     """
     Compresses the data in the given DataWrapper object
 
