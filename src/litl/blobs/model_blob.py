@@ -17,7 +17,7 @@ class ModelBlob(Blob):
     """
     # Load the model state dict from the bytes
     buffer = io.BytesIO(data)
-    model = torch.load(buffer, map_location='cpu')
+    model = torch.load(buffer, map_location='cpu', weights_only=False)
     return cls(model)
   
   def to_bytes(self) -> bytes:

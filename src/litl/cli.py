@@ -44,9 +44,11 @@ def parse_args():
     return parser.parse_args()
 
 ascii_art = \
-"""┓• ┓
+"""
+┓• ┓
 ┃┓╋┃
-┗┗┗┗"""
+┗┗┗┗
+""".strip()
 
 def main():
     console = Console()
@@ -54,8 +56,6 @@ def main():
     # fancy rich printing
     console.print(f"[bold green]{ascii_art}[/bold green]")
     console.print(f"[bold]Running litl [green]{args.command}[/green][/bold]")
-    
-    width = console.width
 
     try:
         

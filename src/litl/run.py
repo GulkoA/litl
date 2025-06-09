@@ -1,6 +1,7 @@
 import argparse
 import os
 from functools import partial
+import sys
 import time
 
 import numpy as np
@@ -41,7 +42,16 @@ def get_compressor(name: str) -> Compressor:
         # if the compressor is not in the entry points, try to load it from a file
         try:
             path, classname = name.rsplit(':', 1)
-            spec = importlib.util.spec_from_file_location(path, os.path.expanduser(path))
+            absolute_path = os.path.abspath(os.path.expanduser(path))
+            
+            if not os.path.exists(absolute_path):
+                raise ValueError(f"Compressor script file at path {path} does not exist")
+            
+            dirname = os.path.dirname(absolute_path)
+            if dirname not in sys.path:
+                sys.path.insert(0, dirname)
+                
+            spec = importlib.util.spec_from_file_location(path, absolute_path)
             mod  = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
         except ValueError as e:
@@ -124,14 +134,14 @@ def decompress(compressor_name=None, original_data_path: str=None, compressed_by
 
     if litl_file_path is not None:
         # read from litl file
-        blob_bytes, compressor_name, compressor_version, meta, litl_version = DotLitl.read(litl_file_path)
+        compressed_bytes, compressor_name, compressor_version, meta, litl_version = DotLitl.read(litl_file_path)
         compressor_class = get_compressor(compressor_name)
 
         if compressor_class.about().version != compressor_version:
             raise ValueError(f"Compressor version mismatch: loaded compressor is v{compressor_class.about().version}, originally compressed with v{compressor_version}")
 
         compressed_blob_class = compressor_class.blob_class()
-        compressed_blob = compressed_blob_class.from_bytes(blob_bytes)
+        compressed_blob = compressed_blob_class.from_bytes(compressed_bytes)
     elif compressed_bytes is not None and meta is not None:
         # read from bytes
         compressor_class = get_compressor(compressor_name)
@@ -152,6 +162,9 @@ def decompress(compressor_name=None, original_data_path: str=None, compressed_by
         original_data = DataWrapper.from_file(original_data_path)
     
         metrics.update(Evaluator.quality(original_data, decompressed_data))
+        metrics.update(Evaluator.size(compressed_bytes, os.path.getsize(original_data_path)))
+        
+        del original_data
 
     if decompressed_path is not None:
         # save decompressed data

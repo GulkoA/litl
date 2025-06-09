@@ -15,6 +15,13 @@ class Evaluator():
     """
     Returns the quality metrics of the reconstructed data compared to the original data
     """
+    if not isinstance(original, DataWrapper) or not isinstance(reconstructed, DataWrapper):
+      raise TypeError("Both original and reconstructed must be instances of DataWrapper")
+    
+    if original.shape() != reconstructed.shape():
+      raise ValueError(f"Original and reconstructed data must have the same shape. Original: {original.shape()}, Reconstructed: {reconstructed.shape()}")
+      
+    
     original_data = original.tensor()
     reconstructed_data = reconstructed.tensor()
 
@@ -27,6 +34,10 @@ class Evaluator():
     psnr_metric = psnr.update(reconstructed_data.flatten(), original_data.flatten()).compute().item()
     del psnr
 
+    # extend to 4d
+    while reconstructed_data.dim() < 4:
+      reconstructed_data = reconstructed_data.unsqueeze(0)
+      original_data = original_data.unsqueeze(0)
     ssim_metric = ssim(reconstructed_data, original_data, data_range=original_data.max().item()).item()
 
     l1_metric = torch.mean(torch.abs(reconstructed_data - original_data)).item()
